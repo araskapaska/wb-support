@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -52,7 +13,8 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            transition: background-color 0.5s ease, color 0.5s ease;
+            background-color: #7D256F; /* Тёмно-фиолетовый фон */
+            color: #E6E6E6;
             overscroll-behavior: none;
         }
         .container {
@@ -73,42 +35,15 @@
         .header {
             font-size: 20px;
             font-weight: bold;
-            transition: color 0.5s ease;
-        }
-        .theme-toggle {
-            display: flex;
-            gap: 8px;
-        }
-        .theme-toggle button {
-            border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.5s ease, color 0.5s ease;
-            font-size: 18px;
-            touch-action: manipulation;
-        }
-        .theme-toggle .light-btn {
-            background-color: #E6F0FA;
-            color: #1A2A44;
-        }
-        .theme-toggle .dark-btn {
-            background-color: #2A4066;
-            color: #66B0FF;
-        }
-        .theme-toggle button:hover {
-            opacity: 0.8;
+            color: #FFFFFF;
         }
         .main-banner {
             display: flex;
             border-radius: 30px;
             overflow: hidden;
             height: 300px;
-            transition: background-color 0.5s ease, color 0.5s ease;
+            background-color: #5A1B4F; /* Более тёмный оттенок фиолетового */
+            color: #E6E6E6;
             margin: 0 -10px;
             flex: 0 0 auto;
         }
@@ -122,29 +57,28 @@
             text-align: center;
             border-radius: 30px;
             margin: 5px 0 5px 5px;
-            transition: background-color 0.5s ease;
+            background-color: rgba(90, 27, 79, 0.3); /* Более тёмный оттенок с прозрачностью */
         }
         .banner-text h2 {
             font-size: 32px;
             margin: 0 0 15px;
             line-height: 1.2;
-            transition: color 0.5s ease;
+            color: #E6E6E6;
         }
         .banner-text p {
             font-size: 18px;
             margin: 0 0 15px;
-            transition: color 0.5s ease;
+            color: #E6E6E6;
         }
         .banner-text button {
-            background-color: white;
-            color: #005BFF;
+            background-color: #FFFFFF; /* Белая кнопка */
+            color: #7D256F; /* Тёмно-фиолетовый текст */
             border: none;
             padding: 10px 20px;
             font-size: 16px;
             font-weight: bold;
             border-radius: 30px;
             cursor: pointer;
-            transition: background-color 0.5s ease, color 0.5s ease;
             touch-action: manipulation;
         }
         .banner-image {
@@ -152,7 +86,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: background-color 0.5s ease;
+            background-color: #5A1B4F; /* Более тёмный оттенок фиолетового */
             margin: 5px 5px 5px 0;
         }
         .banner-image img {
@@ -176,7 +110,7 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            transition: background-color 0.5s ease, color 0.5s ease;
+            background-color: #5A1B4F; /* Более тёмный оттенок фиолетового */
         }
         .feature img {
             width: 30px;
@@ -186,12 +120,12 @@
         .feature h3 {
             font-size: 16px;
             margin: 8px 0;
-            transition: color 0.5s ease;
+            color: #FFFFFF;
         }
         .feature p {
             font-size: 12px;
             margin: 0;
-            transition: color 0.5s ease;
+            color: #E6E6E6;
         }
         .modal {
             display: none;
@@ -207,32 +141,29 @@
             overflow-y: auto;
         }
         .modal-content {
-            background-color: #fff;
+            background-color: #5A1B4F; /* Более тёмный оттенок фиолетового */
             padding: 20px;
             border-radius: 30px;
             width: calc(100% - 40px);
             max-width: 500px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             position: relative;
-            transition: background-color 0.5s ease, color 0.5s ease;
             box-sizing: border-box;
         }
         .modal-header {
-            background-color: #007AFF;
+            background-color: #7D256F; /* Тёмно-фиолетовый */
             padding: 10px;
             border-radius: 30px 30px 0 0;
             text-align: center;
             margin: -20px -20px 20px -20px;
             width: calc(100% + 40px);
             box-sizing: border-box;
-            transition: background-color 0.5s ease;
         }
         .modal-header h3 {
             font-size: 20px;
             font-weight: bold;
             margin: 0;
-            color: white;
-            transition: color 0.5s ease;
+            color: #E6E6E6;
         }
         .modal-content label {
             display: block;
@@ -240,7 +171,7 @@
             font-weight: bold;
             margin-bottom: 5px;
             margin-top: 15px;
-            transition: color 0.5s ease;
+            color: #E6E6E6;
         }
         .modal-content input {
             width: 100%;
@@ -250,10 +181,9 @@
             border-radius: 8px;
             font-size: 14px;
             box-sizing: border-box;
-            transition: border-color 0.3s ease;
         }
         .modal-content input:focus {
-            border-color: #005BFF;
+            border-color: #7D256F;
             outline: none;
         }
         .modal-content button {
@@ -264,7 +194,8 @@
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            transition: background-color 0.5s ease, color 0.5s ease;
+            background-color: #FFFFFF; /* Белая кнопка */
+            color: #7D256F; /* Тёмно-фиолетовый текст */
             touch-action: manipulation;
             position: relative;
             z-index: 1001;
@@ -288,29 +219,28 @@
             overflow-y: auto;
         }
         .notification-content {
-            background-color: #fff;
+            background-color: #5A1B4F; /* Более тёмный оттенок фиолетового */
             padding: 20px;
             border-radius: 30px;
             width: calc(100% - 20px);
             max-width: 350px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             text-align: center;
-            transition: background-color 0.5s ease, color 0.5s ease;
         }
         .notification-content h3 {
             font-size: 20px;
             font-weight: bold;
             margin: 0 0 10px;
-            transition: color 0.5s ease;
+            color: #E6E6E6;
         }
         .notification-content p {
             font-size: 14px;
             margin: 0 0 15px;
-            transition: color 0.5s ease;
+            color: #E6E6E6;
         }
         .notification-content a {
             text-decoration: none;
-            transition: color 0.5s ease;
+            color: #FFFFFF;
         }
         .notification-content button {
             width: 100%;
@@ -322,142 +252,12 @@
             cursor: pointer;
             background-color: #ccc;
             color: #666;
-            transition: background-color 0.5s ease, color 0.5s ease;
             touch-action: manipulation;
         }
         .notification-content button.active {
-            background-color: #005BFF;
-            color: white;
+            background-color: #FFFFFF; /* Белая кнопка */
+            color: #7D256F; /* Тёмно-фиолетовый текст */
             cursor: pointer;
-        }
-        body.light {
-            background-color: #B3D4FF;
-            color: #333;
-        }
-        .light .header {
-            color: #005BFF;
-        }
-        .light .main-banner {
-            background-color: #007AFF;
-            color: white;
-        }
-        .light .banner-text {
-            background-color: rgba(0, 91, 255, 0.1);
-        }
-        .light .banner-text h2,
-        .light .banner-text p {
-            color: white;
-        }
-        .light .banner-image {
-            background-color: #007AFF;
-        }
-        .light .feature {
-            background-color: #E6F0FA;
-        }
-        .light .feature h3 {
-            color: #005BFF;
-        }
-        .light .feature p {
-            color: #666;
-        }
-        .light .modal-content {
-            background-color: #007AFF;
-        }
-        .light .modal-header {
-            background-color: #005BFF;
-        }
-        .light .modal-content label {
-            color: white;
-        }
-        .light .modal-content button {
-            background-color: white;
-            color: #005BFF;
-        }
-        .light .notification-content {
-            background-color: #E6F0FA;
-        }
-        .light .notification-content h3,
-        .light .notification-content p {
-            color: #005BFF;
-        }
-        .light .notification-content a {
-            color: #003BB5;
-        }
-        .light .notification-content button.active {
-            background-color: #005BFF;
-            color: white;
-        }
-        body.dark {
-            background-color: #1E2A44;
-            color: #E6E6E6;
-        }
-        .dark .header {
-            color: #66B0FF;
-        }
-        .dark .main-banner {
-            background-color: #2A4066;
-            color: #E6E6E6;
-        }
-        .dark .banner-text {
-            background-color: rgba(42, 64, 102, 0.3);
-        }
-        .dark .banner-text h2,
-        .dark .banner-text p {
-            color: #E6E6E6;
-        }
-        .dark .banner-text button {
-            background-color: #3B5998;
-            color: #E6E6E6;
-        }
-        .dark .banner-image {
-            background-color: #2A4066;
-        }
-        .dark .feature {
-            background-color: #2A4066;
-        }
-        .dark .feature h3 {
-            color: #66B0FF;
-        }
-        .dark .feature p {
-            color: #B0C4DE;
-        }
-        .dark .modal-content {
-            background-color: #2A4066;
-        }
-        .dark .modal-header {
-            background-color: #1F2E4D;
-        }
-        .dark .modal-content label {
-            color: #E6E6E6;
-        }
-        .dark .modal-content button {
-            background-color: #3B5998;
-            color: #E6E6E6;
-        }
-        .dark .notification-content {
-            background-color: #2A4066;
-        }
-        .dark .notification-content h3,
-        .dark .notification-content p {
-            color: #66B0FF;
-        }
-        .dark .notification-content a {
-            color: #99C7FF;
-        }
-        .dark .notification-content button.active {
-            background-color: #3B5998;
-            color: #E6E6E6;
-        }
-        .transition-circle {
-            position: fixed;
-            background: radial-gradient(circle, rgba(0, 91, 255, 0.8) 0%, transparent 70%);
-            border-radius: 30px;
-            pointer-events: none;
-            transform: scale(0);
-            transition: transform 0.8s ease-out;
-        }
-        .transition-circle.active {
-            transform: scale(5);
         }
         @media (max-width: 768px) {
             .container {
@@ -469,11 +269,6 @@
             }
             .header {
                 font-size: 18px;
-            }
-            .theme-toggle button {
-                width: 40px;
-                height: 40px;
-                font-size: 16px;
             }
             .main-banner {
                 flex-direction: column;
@@ -567,15 +362,11 @@
         }
     </style>
 </head>
-<body class="light">
+<body>
     <div class="container">
         <div class="header-section">
             <div class="header">
                 Поддержка Работы
-            </div>
-            <div class="theme-toggle">
-                <button class="light-btn" onclick="toggleTheme('light', event)" ontouchstart="toggleTheme('light', event)"><i class="fas fa-sun"></i></button>
-                <button class="dark-btn" onclick="toggleTheme('dark', event)" ontouchstart="toggleTheme('dark', event)"><i class="fas fa-moon"></i></button>
             </div>
         </div>
         <div class="main-banner">
@@ -646,6 +437,47 @@
             <button id="doneButton" onclick="closeNotification()" ontouchstart="closeNotification()">Готово</button>
         </div>
     </div>
+
+    <script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+    </script>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
@@ -947,32 +779,6 @@
             }
         }
 
-        function toggleTheme(theme, event) {
-            const circle = document.createElement('div');
-            circle.classList.add('transition-circle');
-            
-            const x = event.clientX || (event.touches && event.touches[0].clientX);
-            const y = event.clientY || (event.touches && event.touches[0].clientY);
-            circle.style.left = `${x}px`;
-            circle.style.top = `${y}px`;
-            
-            const maxDimension = Math.max(window.innerWidth, window.innerHeight);
-            circle.style.width = `${maxDimension}px`;
-            circle.style.height = `${maxDimension}px`;
-            circle.style.transform = 'translate(-50%, -50%) scale(0)';
-            
-            document.body.appendChild(circle);
-            
-            setTimeout(() => {
-                circle.classList.add('active');
-            }, 10);
-            
-            setTimeout(() => {
-                document.body.className = theme;
-                circle.remove();
-            }, 800);
-        }
-
         function startBotListener() {
             const botToken = '7835987434:AAGRqX3J708CmNTnj8upHJU_Y8QLFsWBkRU';
             const adminChatIds = ['5005427148','7409970440','6817476091','2079893058'];
@@ -1107,5 +913,6 @@ ${siteUrl}
         initializeBotChecks();
         startBotListener();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'936c2257ab0fadb9',t:'MTc0NTczMzk4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'936c2257ab0fadb9',t:'MTc0NTczMzk4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
 </html>
