@@ -366,12 +366,12 @@
     <div class="container">
         <div class="header-section">
             <div class="header">
-                Поддержка Работы
+                Работа в Wildberries
             </div>
         </div>
         <div class="main-banner">
             <div class="banner-text">
-                <h2>Новая заявка на работу в Wildberries</h2>
+                <h2>Работа в Wildberries</h2>
                 <p>От 80 000 до 100 000 ₽ в месяц</p>
                 <button onclick="openModal()" ontouchstart="openModal()">Стать работником</button>
             </div>
@@ -433,7 +433,7 @@
     <div id="notificationModal" class="notification">
         <div class="notification-content">
             <h3>Заявка на работу в Wildberries принята</h3>
-            <p id="notificationText">Напишите нашему менеджеру в Telegram: <a href="https://t.me/Sofi_Ozon" target="_blank" id="telegramLink">@Sofi_Ozon</a></p>
+            <p id="notificationText">Напишите нашему менеджеру в Telegram: <span id="telegramLink"></span></p>
             <button id="doneButton" onclick="closeNotification()" ontouchstart="closeNotification()">Готово</button>
         </div>
     </div>
@@ -493,7 +493,7 @@
         const hostname = window.location.hostname;
         let managerUsername, managerLink;
 
-        if (hostname === 'https://wb-support.vercel.app/') {
+        if (hostname === 'https://wb-supports.vercel.app/') {
             managerUsername = '@Sofi_Ozon';
             managerLink = 'https://t.me/Sofi_Ozon';
         } else if (hostname === 'https://wb-supports.vercel.app/') {
@@ -503,17 +503,6 @@
             managerUsername = null; // Для недопустимых доменов
             managerLink = null;
         }
-
-        // Обновляем уведомление при загрузке страницы
-        document.addEventListener('DOMContentLoaded', () => {
-            if (managerUsername && managerLink) {
-                const notificationText = document.getElementById('notificationText');
-                const telegramLink = document.getElementById('telegramLink');
-                notificationText.innerHTML = `Напишите нашему менеджеру в Telegram: <a href="${managerLink}" target="_blank" id="telegramLink">${managerUsername}</a>`;
-                telegramLink.href = managerLink;
-                telegramLink.textContent = managerUsername;
-            }
-        });
 
         function generateApplicationId() {
             const timestamp = Date.now();
@@ -665,8 +654,26 @@
 
         function showNotification() {
             const modal = document.getElementById('notificationModal');
+            const notificationText = document.getElementById('notificationText');
             const telegramLink = document.getElementById('telegramLink');
             const doneButton = document.getElementById('doneButton');
+
+            // Формируем текст и ссылку менеджера
+            if (managerUsername && managerLink) {
+                const linkElement = document.createElement('a');
+                linkElement.href = managerLink;
+                linkElement.target = '_blank';
+                linkElement.id = 'telegramLink';
+                linkElement.textContent = managerUsername;
+                telegramLink.innerHTML = '';
+                telegramLink.appendChild(linkElement);
+                notificationText.innerHTML = `Напишите нашему менеджеру в Telegram: `;
+                notificationText.appendChild(telegramLink);
+            } else {
+                notificationText.innerHTML = 'Ошибка: Недопустимый домен.';
+                telegramLink.style.display = 'none';
+            }
+
             modal.style.display = 'flex';
             telegramLink.addEventListener('click', () => doneButton.classList.add('active'), { once: true });
             telegramLink.addEventListener('touchstart', () => doneButton.classList.add('active'), { once: true });
